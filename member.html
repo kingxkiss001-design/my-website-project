@@ -1,0 +1,93 @@
+\<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMS - Member Portal</title>
+    <style>
+        :root { --bg-main: #0b0f19; --glass-bg: rgba(30, 41, 59, 0.45); --glass-border: rgba(255, 255, 255, 0.08); --bg-input: rgba(9, 13, 22, 0.6); --accent-blue: #3b82f6; --text-main: #f8fafc; --text-muted: #94a3b8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b0f19 75%); color: var(--text-main); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .profile-card { background: var(--glass-bg); border: 1px solid var(--glass-border); width: 100%; max-width: 500px; border-radius: 20px; padding: 40px; text-align: center; }
+        .avatar-circle { width: 80px; height: 80px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; margin: 0 auto 20px; cursor: pointer; }
+        .info-group { text-align: left; margin-bottom: 18px; }
+        .info-group label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: block; }
+        .info-box { width: 100%; background-color: var(--bg-input); border: 1px solid var(--glass-border); color: var(--text-main); padding: 12px; border-radius: 10px; }
+        .btn-action { width: 100%; background: #10b981; color: white; padding: 12px; border: none; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+        .btn-edit { background: #3b82f6; }
+        .btn-logout { width: 100%; background: transparent; border: 1px solid #f87171; color: #f87171; padding: 12px; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="profile-card">
+        <div class="avatar-circle" id="userInitials" onclick="document.getElementById('fileInput').click()">??</div>
+        <input type="file" id="fileInput" style="display:none" onchange="previewImage(event)">
+        <h2>Member Profile</h2>
+        <div class="info-group">
+            <label>Full Name</label>
+            <input type="text" class="info-box" id="profileName" disabled>
+        </div>
+        <div class="info-group">
+            <label>Phone Number</label>
+            <input type="text" class="info-box" id="profilePhone" disabled placeholder="Enter phone number">
+        </div>
+        <div class="info-group">
+            <label>Email</label>
+            <div class="info-box" id="profileEmail" style="opacity: 0.6;"></div>
+        </div>
+        <button id="editBtn" class="btn-action btn-edit" onclick="toggleEdit()">Edit Profile</button>
+        <button id="saveBtn" class="btn-action" onclick="updateProfile()" style="display:none;">Save Changes</button>
+        <button class="btn-logout" onclick="performLogOut()">Logout</button>
+    </div>
+
+    <script>
+        async function loadActiveUserProfile() {
+            const email = localStorage.getItem("oms_user_email");
+            const response = await fetch(`/api/members`);
+            const data = await response.json();
+            const user = data.find(u => u.email.toLowerCase() === email.toLowerCase());
+            if(user) {
+                document.getElementById("profileName").value = user.name || "";
+                document.getElementById("profileEmail").innerText = user.email;
+                document.getElementById("profilePhone").value = user.phone || "";
+                document.getElementById("userInitials").innerText = user.name.substring(0,2).toUpperCase();
+            }
+        }
+        function toggleEdit() {
+            document.getElementById("profileName").disabled = false;
+            document.getElementById("profilePhone").disabled = false;
+            document.getElementById("editBtn").style.display = "none";
+            document.getElementById("saveBtn").style.display = "block";
+        }
+        async function updateProfile() {
+            const name = document.getElementById("profileName").value;
+            const phone = document.getElementById("profilePhone").value;
+            const email = localStorage.getItem("oms_user_email");
+            if(!name || !phone) return alert("Required fields cannot be blank");
+            await fetch('/api/profile/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, name, phone })
+            });
+            alert("Profile Updated!");
+            document.getElementById("profileName").disabled = true;
+            document.getElementById("profilePhone").disabled = true;
+            document.getElementById("editBtn").style.display = "block";
+            document.getElementById("saveBtn").style.display = "none";
+            loadActiveUserProfile();
+        }
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const avatar = document.getElementById("userInitials");
+                avatar.style.backgroundImage = `url('${reader.result}')`;
+                avatar.style.backgroundSize = "cover";
+                avatar.innerText = "";
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+        function performLogOut() { localStorage.clear(); window.location.replace("login.html"); }
+        loadActiveUserProfile();
+    </script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMS - Secure Gateway</title>
+    <script src="auth.js"></script>
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --glass-bg: rgba(30, 41, 59, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --bg-input: rgba(9, 13, 22, 0.6);
+            --accent-blue: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-focus: #60a5fa;
+            --err-color: #f87171;
+            --succ-color: #34d399;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b0f19 75%); color: var(--text-main); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-card { background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(16px); width: 100%; max-width: 440px; border-radius: 20px; padding: 45px 35px; box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7); }
+        h1 { font-size: 28px; text-align: center; margin-bottom: 8px; font-weight: 800; background: linear-gradient(135deg, #fff 30%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: var(--text-muted); text-align: center; font-size: 14px; margin-bottom: 20px; }
+        .form-group { text-align: left; margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .password-container { position: relative; display: flex; align-items: center; }
+        .password-container input { width: 100%; background-color: var(--bg-input); border: 1px solid var(--glass-border); color: var(--text-main); padding: 13px 45px 13px 16px; border-radius: 10px; font-size: 14px; outline: none; }
+        .password-container input:focus { border-color: var(--border-focus); }
+        
+        .eye-btn { position: absolute; right: 15px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; user-select: none; }
+        .eye-btn:hover { color: var(--text-main); }
+
+        .form-group input[type="email"], .form-group select { width: 100%; background-color: var(--bg-input); border: 1px solid var(--glass-border); color: var(--text-main); padding: 13px 16px; border-radius: 10px; font-size: 14px; outline: none; }
+        .form-group input[type="email"]:focus, .form-group select:focus { border-color: var(--border-focus); }
+
+        .btn-submit { width: 100%; background-color: var(--accent-blue); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; margin-bottom: 15px; }
+        .btn-submit:hover { background-color: #2563eb; }
+        .feedback { text-align: center; font-size: 13px; margin-bottom: 15px; display: none; font-weight: 600; padding: 10px; border-radius: 8px; }
+        .link-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 13px; }
+        .link-footer a { color: var(--accent-blue); text-decoration: none; font-weight: 500; cursor: pointer; }
+        .link-footer a:hover { color: var(--border-focus); text-decoration: underline; }
+        .reg-fields { display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1 id="mainTitle">System Gateway</h1>
+        <p class="subtitle" id="mainSubtitle">Organization Management System Access</p>
+        
+        <div id="msgBox" class="feedback"></div>
+
+        <form onsubmit="handlePortalAction(event)">
+            <div class="form-group reg-fields">
+                <label>Full Name</label>
+                <input type="text" id="regName" style="width: 100%; background-color: var(--bg-input); border: 1px solid var(--glass-border); color: var(--text-main); padding: 13px 16px; border-radius: 10px; font-size: 14px; outline: none;" placeholder="Enter full identity name">
+            </div>
+            <div class="form-group reg-fields">
+                <label>Clearance Level Designation</label>
+                <select id="regRole">
+                    <option value="Backend Developer">Backend Developer</option>
+                    <option value="Frontend Developer">Frontend Developer</option>
+                    <option value="Project Manager">Project Manager</option>
+                    <option value="UI/UX Designer">UI/UX Designer</option>
+                    <option value="admin">System Admin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Secure Email Address</label>
+                <input type="email" id="userEmail" required placeholder="name@org.com">
+            </div>
+            
+            <div class="form-group">
+                <label>Access Password</label>
+                <div class="password-container">
+                    <input type="password" id="userPassword" required placeholder="Enter password">
+                    <button type="button" class="eye-btn" onclick="togglePasswordVisibility('userPassword', 'eyeIcon1')">
+                        <span id="eyeIcon1">👁️</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group reg-fields" id="confirmPasswordGroup">
+                <label>Confirm Password</label>
+                <div class="password-container">
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password">
+                    <button type="button" class="eye-btn" onclick="togglePasswordVisibility('confirmPassword', 'eyeIcon2')">
+                        <span id="eyeIcon2">👁️</span>
+                    </button>
+                </div>
+            </div>
+            
+            <button type="submit" id="submitBtn" class="btn-submit">Verify Identity</button>
+        </form>
+
+        <div class="link-footer" id="footerLinks">
+            <a onclick="toggleRegistrationMode(true)">Create an Account</a>
+            <a href="#">Forgot Password?</a>
+        </div>
+    </div>
+
+    <script>
+        let registrationActive = false;
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(iconId);
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                eyeIcon.innerText = "🔒";
+            } else {
+                passwordInput.type = "password";
+                eyeIcon.innerText = "👁️";
+            }
+        }
+
+        function toggleRegistrationMode(isRegistering) {
+            registrationActive = isRegistering;
+            const regFields = document.querySelectorAll('.reg-fields');
+            document.getElementById("msgBox").style.display = "none";
+            
+            document.getElementById("userPassword").type = "password";
+            document.getElementById("userPassword").value = "";
+            document.getElementById("eyeIcon1").innerText = "👁️";
+            
+            document.getElementById("confirmPassword").type = "password";
+            document.getElementById("confirmPassword").value = "";
+            document.getElementById("eyeIcon2").innerText = "👁️";
+            
+            if (isRegistering) {
+                document.getElementById("mainTitle").innerText = "Register Account";
+                document.getElementById("mainSubtitle").innerText = "Join Organization Workspace";
+                document.getElementById("submitBtn").innerText = "Create New Account";
+                document.getElementById("regName").required = true;
+                document.getElementById("confirmPassword").required = true;
+                regFields.forEach(field => field.style.display = 'block');
+                document.getElementById("footerLinks").innerHTML = `<a onclick="toggleRegistrationMode(false)">Back to Sign In</a>`;
+            } else {
+                document.getElementById("mainTitle").innerText = "System Gateway";
+                document.getElementById("mainSubtitle").innerText = "Organization Management System Access";
+                document.getElementById("submitBtn").innerText = "Verify Identity";
+                document.getElementById("regName").required = false;
+                document.getElementById("confirmPassword").required = false;
+                regFields.forEach(field => field.style.display = 'none');
+                document.getElementById("footerLinks").innerHTML = `
+                    <a onclick="toggleRegistrationMode(true)">Create an Account</a>
+                    <a href="#">Forgot Password?</a>
+                `;
+            }
+        }
+
+        async function handlePortalAction(e) {
+            e.preventDefault();
+            const msgBox = document.getElementById("msgBox");
+            const email = document.getElementById("userEmail").value.trim();
+            const password = document.getElementById("userPassword").value.trim();
+
+            if (registrationActive) {
+                const name = document.getElementById("regName").value.trim();
+                const role = document.getElementById("regRole").value;
+                const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+                if (password !== confirmPassword) {
+                    msgBox.style.backgroundColor = "rgba(239, 68, 68, 0.15)";
+                    msgBox.style.color = "var(--err-color)";
+                    msgBox.innerText = "Passwords do not match!";
+                    msgBox.style.display = "block";
+                    return;
+                }
+
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, role, password })
+                });
+                const data = await response.json();
+
+                if(response.ok) {
+                    msgBox.style.backgroundColor = "rgba(16, 185, 129, 0.15)";
+                    msgBox.style.color = "var(--succ-color)";
+                    msgBox.innerText = "Account successfully created! Redirecting...";
+                    msgBox.style.display = "block";
+                    setTimeout(() => toggleRegistrationMode(false), 1500);
+                } else {
+                    msgBox.style.backgroundColor = "rgba(239, 68, 68, 0.15)";
+                    msgBox.style.color = "var(--err-color)";
+                    msgBox.innerText = (data && data.message) ? data.message : "Registration Failed.";
+                    msgBox.style.display = "block";
+                }
+            } else {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.clear();
+                    localStorage.setItem("oms_session_token", data.token);
+                    localStorage.setItem("oms_user_role", data.role);
+                    localStorage.setItem("oms_user_name", data.name);
+                    localStorage.setItem("oms_user_email", data.email);
+                    
+                    if (data.role === "admin") {
+                        window.location.replace("dashboard.html");
+                    } else {
+                        window.location.replace("member.html");
+                    }
+                } else {
+                    msgBox.style.backgroundColor = "rgba(239, 68, 68, 0.15)";
+                    msgBox.style.color = "var(--err-color)";
+                    msgBox.innerText = (data && data.message) ? data.message : "Invalid credentials.";
+                    msgBox.style.display = "block";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

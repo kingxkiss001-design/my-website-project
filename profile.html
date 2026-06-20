@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OMS - My Profile</title>
+    <style>
+        body { background: #0b0f19; color: #f8fafc; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 40px; }
+        .card { background: rgba(30, 41, 59, 0.45); padding: 30px; border-radius: 15px; width: 400px; border: 1px solid rgba(255,255,255,0.1); }
+        .avatar { width: 80px; height: 80px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; cursor: pointer; font-size: 24px; color: white; }
+        .input-group { margin-bottom: 15px; }
+        label { font-size: 12px; color: #94a3b8; }
+        input { width: 100%; padding: 10px; background: #090d16; border: 1px solid #334155; color: white; border-radius: 5px; margin-top: 5px; }
+        button { width: 100%; padding: 10px; margin-top: 10px; cursor: pointer; border: none; border-radius: 5px; background: #10b981; color: white; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="avatar" id="avatar" onclick="document.getElementById('fileInput').click()">??</div>
+        <input type="file" id="fileInput" hidden onchange="handleImage(event)">
+        
+        <div class="input-group"><label>Full Name</label><input type="text" id="name"></div>
+        <div class="input-group"><label>Email (Read-only)</label><input type="text" id="email" disabled></div>
+        <div class="input-group"><label>Phone</label><input type="text" id="phone"></div>
+        <div class="input-group"><label>Role</label><input type="text" id="role" disabled></div>
+        <div class="input-group"><label>Join Date</label><input type="text" id="joinDate" disabled></div>
+        
+        <button onclick="saveProfile()">Save Changes</button>
+    </div>
+
+    <script>
+        async function loadProfile() {
+            const email = localStorage.getItem("oms_user_email");
+            const res = await fetch(`/api/profile?email=${email}`);
+            const user = await res.json();
+            document.getElementById('name').value = user.name || "";
+            document.getElementById('email').value = user.email || "";
+            document.getElementById('phone').value = user.phone || "";
+            document.getElementById('role').value = user.role || "";
+            document.getElementById('joinDate').value = '2026-06-19'; // Placeholder
+            document.getElementById('avatar').innerText = (user.name || "??").substring(0,2).toUpperCase();
+        }
+
+        async function saveProfile() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            if (!name || !phone) return alert("Error: Name and Phone cannot be blank.");
+
+            const res = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: localStorage.getItem("oms_user_email"), name, phone })
+            });
+
+            if ((await res.json()).success) {
+                alert("Success: Profile updated successfully!");
+                loadProfile();
+            }
+        }
+
+        function handleImage(e) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const av = document.getElementById('avatar');
+                av.style.backgroundImage = `url(${event.target.result})`;
+                av.style.backgroundSize = 'cover';
+                av.innerText = '';
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+        loadProfile();
+    </script>
+</body>
+</html>
